@@ -1,18 +1,7 @@
 import * as core from '@actions/core'
 import {Octokit} from '@octokit/rest'
 import axios from 'axios'
-import moment from 'moment-timezone'
 import {createMessageCard} from './message-card'
-
-const escapeMarkdownTokens = (text: string) =>
-  text
-    .replace(/\n\ {1,}/g, '\n ')
-    .replace(/\_/g, '\\_')
-    .replace(/\*/g, '\\*')
-    .replace(/\|/g, '\\|')
-    .replace(/#/g, '\\#')
-    .replace(/-/g, '\\-')
-    .replace(/>/g, '\\>')
 
 async function run(): Promise<void> {
   try {
@@ -24,11 +13,6 @@ async function run(): Promise<void> {
     const notificationSummary =
       core.getInput('notification-summary') || 'GitHub Action Notification'
     const notificationColor = core.getInput('notification-color') || '0b93ff'
-    const timezone = core.getInput('timezone') || 'UTC'
-
-    const timestamp = moment()
-      .tz(timezone)
-      .format('dddd, MMMM Do YYYY, h:mm:ss a z')
 
     const [owner, repo] = (process.env.GITHUB_REPOSITORY || '').split('/')
     const sha = process.env.GITHUB_SHA || ''
@@ -51,16 +35,12 @@ async function run(): Promise<void> {
       runId,
       repoName,
       sha,
-      repoUrl,
-      timestamp
+      repoUrl
     )
-
-    console.log(messageCard)
 
     axios
       .post(msTeamsWebhookUri, messageCard)
       .then(function(response) {
-        console.log(response)
         core.debug(response.data)
       })
       .catch(function(error) {
